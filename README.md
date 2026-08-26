@@ -79,25 +79,25 @@ Once launched, open your web browser and navigate to:
 Here are visual walkthroughs of the running system:
 
 ### 1. Home Page / Landing
-*(Add your landing page screenshot here)*
+
 ```markdown
 ![Landing Page](screenshots/landing.png)
 ```
 
 ### 2. Multi-Step Risk Assessment Form
-*(Add your questionnaire screenshot here)*
+
 ```markdown
 ![Assessment Form](screenshots/form.png)
 ```
 
 ### 3. Risk Assessment Dashboard (with SHAP and Recommendations)
-*(Add your results dashboard screenshot here)*
+
 ```markdown
 ![Results Dashboard](screenshots/results.png)
 ```
 
 ### 4. What-If Simulator
-*(Add your simulator screenshot here)*
+
 ```markdown
 ![What-If Simulator](screenshots/simulator.png)
 ```
