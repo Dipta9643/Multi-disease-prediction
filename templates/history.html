@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}History Dashboard — Multi-Risk AI Predictor{% endblock %}
+
+{% block content %}
+<div class="history-header">
+    <div>
+        <h1 style="font-size: 2.2rem; font-weight: 800; margin-bottom: 8px;">Risk Prediction History</h1>
+        <p style="color: var(--text-muted);">Track your health metrics and disease risk projections over time.</p>
+    </div>
+    {% if history %}
+    <form action="{{ url_for('clear_history_data') }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently clear all prediction history?');">
+        <button type="submit" class="btn btn-danger" id="btn-clear-history">Clear All History</button>
+    </form>
+    {% endif %}
+</div>
+
+{% if not history %}
+<!-- Empty State -->
+<div class="glass-card" style="text-align: center; padding: 60px 20px;">
+    <div style="font-size: 4rem; margin-bottom: 20px;">📭</div>
+    <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 10px;">No Records Found</h3>
+    <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto 30px auto; font-size: 0.95rem;">
+        You haven't completed any health risk assessments yet. Take your first assessment to begin tracking your scores.
+    </p>
+    <a href="{{ url_for('predict') }}" class="btn btn-primary" id="btn-history-predict-now">
+        Assess Risk Now
+    </a>
+</div>
+{% else %}
+
+<!-- Trend Chart -->
+<div class="glass-card" style="margin-bottom: 40px; padding: 24px;">
+    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+        📈 Risk Trajectory Trends
+    </h3>
+    <div style="position: relative; height: 300px; width: 100%;">
+        <canvas id="trends-chart"></canvas>
+    </div>
+</div>
+
+<!-- History Table -->
+<div class="table-wrapper">
+    <table class="history-table">
+        <thead>
+            <tr>
+                <th>Date & Time</th>
+                <th>Patient Details</th>
+                <th>Diabetes Risk</th>
+                <th>Hypertension Risk</th>
+                <th>Heart Disease Risk</th>
+                <th style="text-align: right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in history %}
+            <tr>
+                <td style="font-weight: 600; font-family: monospace;">{{ record.timestamp }}</td>
+                <td>
+                    <div style="font-size: 0.85rem; line-height: 1.4;">
+                        Age: <strong>{{ record.age }}</strong>, {{ record.gender }}<br>
+                        BMI: <strong>{{ record.bmi }}</strong> ({{ record.activity_level }} Act.)
+                    </div>
+                </td>
+                <td>
+                    <div class="hist-prob-badge">
+                        <span>{{ (record.diabetes_prob * 100) | round(1) }}%</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">{{ record.diabetes_risk }}</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="hist-prob-badge">
+                        <span>{{ (record.hypertension_prob * 100) | round(1) }}%</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">{{ record.hypertension_risk }}</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="hist-prob-badge">
+                        <span>{{ (record.heart_disease_prob * 100) | round(1) }}%</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">{{ record.heart_disease_risk }}</span>
+                    </div>
+                </td>
+                <td style="text-align: right;">
+                    <div style="display: inline-flex; gap: 8px;">
+                        <a href="{{ url_for('view_results', record_id=record.id) }}" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;">
+                            View Report
+                        </a>
+                        <form action="{{ url_for('delete_record', record_id=record.id) }}" method="POST" style="margin:0;">
+                            <button type="submit" class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8rem;" onclick="return confirm('Delete this record?');">
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if history %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const historyData = {{ history | tojson }};
+        
+        // Reverse array to plot chronologically (left to right)
+        const chronData = [...historyData].reverse();
+        
+        const labels = chronData.map(r => r.timestamp.split(" ")[0]);
+        const diabData = chronData.map(r => (r.diabetes_prob * 100).toFixed(1));
+        const hypData = chronData.map(r => (r.hypertension_prob * 100).toFixed(1));
+        const heartData = chronData.map(r => (r.heart_disease_prob * 100).toFixed(1));
+        
+        const ctx = document.getElementById("trends-chart").getContext("2d");
+        new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: "Diabetes Risk (%)",
+                        data: diabData,
+                        borderColor: "#ff6b6b",
+                        backgroundColor: "rgba(255, 107, 107, 0.05)",
+                        tension: 0.25,
+                        fill: true
+                    },
+                    {
+                        label: "Hypertension Risk (%)",
+                        data: hypData,
+                        borderColor: "#ffd93d",
+                        backgroundColor: "rgba(255, 217, 61, 0.05)",
+                        tension: 0.25,
+                        fill: true
+                    },
+                    {
+                        label: "Heart Disease Risk (%)",
+                        data: heartData,
+                        borderColor: "#00d4aa",
+                        backgroundColor: "rgba(0, 212, 170, 0.05)",
+                        tension: 0.25,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: "top",
+                        labels: {
+                            color: "#f3f4f6"
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 100,
+                        grid: { color: "rgba(255, 255, 255, 0.05)" },
+                        ticks: { color: "#9ca3af" }
+                    },
+                    x: {
+                        grid: { color: "rgba(255, 255, 255, 0.05)" },
+                        ticks: { color: "#9ca3af" }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}

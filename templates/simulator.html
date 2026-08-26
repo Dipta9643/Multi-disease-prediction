@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block title %}What-If Simulator — Multi-Risk AI Predictor{% endblock %}
+
+{% block content %}
+<div class="results-header">
+    <h1 style="font-size: 2.2rem; font-weight: 800; margin-bottom: 8px;">What-If Risk Simulator</h1>
+    <p style="color: var(--text-muted);">Dynamically modify your lifestyle features to see real-time updates of your disease risk probabilities.</p>
+</div>
+
+<div class="sim-layout">
+    
+    <!-- LEFT PANEL: Sliders & Controls -->
+    <div class="glass-card sim-controls-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-glass); padding-bottom: 12px; margin-bottom: 24px;">
+            <h3 style="font-size: 1.15rem; font-weight: 700;">⚙️ Adjust Health Profile</h3>
+            <button type="button" class="btn btn-secondary" id="btn-reset-sim" style="padding: 6px 14px; font-size: 0.8rem;">Reset to Original</button>
+        </div>
+        
+        <form id="sim-form">
+            <!-- Numerical sliders & Categorical dropdowns grouped by category -->
+            
+            <!-- Demographic -->
+            <div style="margin-bottom: 24px;">
+                <h4 style="font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: var(--color-low); margin-bottom: 12px;">Demographics</h4>
+                <div class="form-group">
+                    <label for="age">Age</label>
+                    <div class="slider-container">
+                        <input type="range" id="age" name="age" class="form-range" min="18" max="90" value="{{ original_input.age }}">
+                        <span class="slider-val" id="age-val">{{ original_input.age }}</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="gender">Biological Gender</label>
+                    <select id="gender" name="gender" class="form-select">
+                        <option value="0" {% if original_input.gender == 0 %}selected{% endif %}>Male</option>
+                        <option value="1" {% if original_input.gender == 1 %}selected{% endif %}>Female</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Measurements -->
+            <div style="margin-bottom: 24px; border-top: 1px solid var(--border-glass); padding-top: 20px;">
+                <h4 style="font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: var(--color-low); margin-bottom: 12px;">Body Measurements</h4>
+                <div class="form-group">
+                    <label for="bmi">Body Mass Index (BMI)</label>
+                    <div class="slider-container">
+                        <input type="range" id="bmi" name="bmi" class="form-range" min="15.0" max="50.0" step="0.1" value="{{ original_input.bmi }}">
+                        <span class="slider-val" id="bmi-val">{{ original_input.bmi }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Physical Activity -->
+            <div style="margin-bottom: 24px; border-top: 1px solid var(--border-glass); padding-top: 20px;">
+                <h4 style="font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: var(--color-low); margin-bottom: 12px;">Physical Activity</h4>
+                <div class="form-group">
+                    <label for="activity_level">Activity Level</label>
+                    <select id="activity_level" name="activity_level" class="form-select">
+                        <option value="1" {% if original_input.activity_level == 1 %}selected{% endif %}>Low (Sedentary)</option>
+                        <option value="2" {% if original_input.activity_level == 2 %}selected{% endif %}>Moderate</option>
+                        <option value="3" {% if original_input.activity_level == 3 %}selected{% endif %}>High (Active)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="exercise_duration">Daily Exercise Duration</label>
+                    <div class="slider-container">
+                        <input type="range" id="exercise_duration" name="exercise_duration" class="form-range" min="0" max="120" value="{{ original_input.exercise_duration }}">
+                        <span class="slider-val" id="exercise_duration-val">{{ original_input.exercise_duration }} min</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diet & Nutrition -->
+            <div style="margin-bottom: 24px; border-top: 1px solid var(--border-glass); padding-top: 20px;">
+                <h4 style="font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: var(--color-low); margin-bottom: 12px;">Diet & Nutrition</h4>
+                <div class="form-group">
+                    <label for="sugar_intake">Sugar Intake</label>
+                    <select id="sugar_intake" name="sugar_intake" class="form-select">
+                        <option value="0" {% if original_input.sugar_intake == 0 %}selected{% endif %}>Low</option>
+                        <option value="1" {% if original_input.sugar_intake == 1 %}selected{% endif %}>Moderate</option>
+                        <option value="2" {% if original_input.sugar_intake == 2 %}selected{% endif %}>High</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="salt_intake">Sodium (Salt) Intake</label>
+                    <select id="salt_intake" name="salt_intake" class="form-select">
+                        <option value="0" {% if original_input.salt_intake == 0 %}selected{% endif %}>Low</option>
+                        <option value="1" {% if original_input.salt_intake == 1 %}selected{% endif %}>Moderate</option>
+                        <option value="2" {% if original_input.salt_intake == 2 %}selected{% endif %}>High</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="fruit_veg_consumption">Fruit & Vegetable Servings (Daily)</label>
+                    <div class="slider-container">
+                        <input type="range" id="fruit_veg_consumption" name="fruit_veg_consumption" class="form-range" min="0" max="10" step="0.5" value="{{ original_input.fruit_veg_consumption }}">
+                        <span class="slider-val" id="fruit_veg_consumption-val">{{ original_input.fruit_veg_consumption }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sleep -->
+            <div style="margin-bottom: 24px; border-top: 1px solid var(--border-glass); padding-top: 20px;">
+                <h4 style="font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: var(--color-low); margin-bottom: 12px;">Sleep</h4>
+                <div class="form-group">
+                    <label for="sleep_duration">Sleep Duration</label>
+                    <div class="slider-container">
+                        <input type="range" id="sleep_duration" name="sleep_duration" class="form-range" min="3.0" max="12.0" step="0.5" value="{{ original_input.sleep_duration }}">
+                        <span class="slider-val" id="sleep_duration-val">{{ original_input.sleep_duration }} hrs</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="sleep_quality">Sleep Quality</label>
+                    <select id="sleep_quality" name="sleep_quality" class="form-select">
+                        <option value="0" {% if original_input.sleep_quality == 0 %}selected{% endif %}>Poor</option>
+                        <option value="1" {% if original_input.sleep_quality == 1 %}selected{% endif %}>Average</option>
+                        <option value="2" {% if original_input.sleep_quality == 2 %}selected{% endif %}>Good</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Mental Health -->
+            <div style="margin-bottom: 24px; border-top: 1px solid var(--border-glass); padding-top: 20px;">
+                <h4 style="font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: var(--color-low); margin-bottom: 12px;">Mental Health</h4>
+                <div class="form-group">
+                    <label for="stress_level">Stress Level</label>
+                    <select id="stress_level" name="stress_level" class="form-select">
+                        <option value="0" {% if original_input.stress_level == 0 %}selected{% endif %}>Low</option>
+                        <option value="1" {% if original_input.stress_level == 1 %}selected{% endif %}>Medium</option>
+                        <option value="2" {% if original_input.stress_level == 2 %}selected{% endif %}>High</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Habits -->
+            <div style="margin-bottom: 24px; border-top: 1px solid var(--border-glass); padding-top: 20px;">
+                <h4 style="font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: var(--color-low); margin-bottom: 12px;">Habits</h4>
+                <div class="form-group">
+                    <label for="smoking_status">Smoking Status</label>
+                    <select id="smoking_status" name="smoking_status" class="form-select">
+                        <option value="0" {% if original_input.smoking_status == 0 %}selected{% endif %}>Never</option>
+                        <option value="1" {% if original_input.smoking_status == 1 %}selected{% endif %}>Former</option>
+                        <option value="2" {% if original_input.smoking_status == 2 %}selected{% endif %}>Current</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="alcohol_consumption">Alcohol Consumption</label>
+                    <select id="alcohol_consumption" name="alcohol_consumption" class="form-select">
+                        <option value="0" {% if original_input.alcohol_consumption == 0 %}selected{% endif %}>None</option>
+                        <option value="1" {% if original_input.alcohol_consumption == 1 %}selected{% endif %}>Moderate</option>
+                        <option value="2" {% if original_input.alcohol_consumption == 2 %}selected{% endif %}>Heavy</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Family History (Static in simulation usually, but sliders provided) -->
+            <div style="margin-bottom: 24px; border-top: 1px solid var(--border-glass); padding-top: 20px;">
+                <h4 style="font-size: 0.9rem; font-weight: 700; text-transform: uppercase; color: var(--color-low); margin-bottom: 12px;">Family History</h4>
+                <div class="form-group">
+                    <label for="family_history_diabetes">Family History of Diabetes</label>
+                    <select id="family_history_diabetes" name="family_history_diabetes" class="form-select">
+                        <option value="0" {% if original_input.family_history_diabetes == 0 %}selected{% endif %}>No</option>
+                        <option value="1" {% if original_input.family_history_diabetes == 1 %}selected{% endif %}>Yes</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="family_history_hypertension">Family History of Hypertension</label>
+                    <select id="family_history_hypertension" name="family_history_hypertension" class="form-select">
+                        <option value="0" {% if original_input.family_history_hypertension == 0 %}selected{% endif %}>No</option>
+                        <option value="1" {% if original_input.family_history_hypertension == 1 %}selected{% endif %}>Yes</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="family_history_heart_disease">Family History of Heart Disease</label>
+                    <select id="family_history_heart_disease" name="family_history_heart_disease" class="form-select">
+                        <option value="0" {% if original_input.family_history_heart_disease == 0 %}selected{% endif %}>No</option>
+                        <option value="1" {% if original_input.family_history_heart_disease == 1 %}selected{% endif %}>Yes</option>
+                    </select>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- RIGHT PANEL: Live Predictions -->
+    <div class="sim-results-panel">
+
+        
+        <div class="sim-compare-grid">
+            {% for disease_id, disease in diseases.items() %}
+            <div class="sim-gauge-card" id="sim-card-{{ disease_id }}">
+                <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 12px;">{{ disease.display_name }}</h4>
+                <div class="chart-container">
+                    <canvas id="gauge-{{ disease_id }}"></canvas>
+                    <div class="gauge-prob-val" id="val-{{ disease_id }}">0.0%</div>
+                </div>
+                
+                <div id="tag-container-{{ disease_id }}" style="margin-top: 8px;">
+                    <span class="risk-tag low" id="tag-{{ disease_id }}">Low Risk</span>
+                </div>
+                
+                <!-- Diff Indicator -->
+                <div class="sim-diff-tag neutral" id="diff-{{ disease_id }}">
+                    <span>▬</span> <span>No change</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Interactive Tip Card -->
+        <div class="glass-card" style="margin-top: 24px; padding: 24px;">
+            <h4 style="font-weight: 700; margin-bottom: 8px;">💡 Risk Minimization Challenge</h4>
+            <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5;">
+                Try to drop all three risk scores to <strong>"Low Risk"</strong> by adjusting your body mass (BMI), cutting down sugar and salt intakes, increasing daily exercise, and improving your sleep duration. This visually highlights the direct power of preventive lifestyle change!
+            </p>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 16px; margin-top: 24px;">
+            <a href="{{ url_for('predict') }}" class="btn btn-secondary" style="flex: 1;">New Prediction Form</a>
+            <a href="{{ url_for('history') }}" class="btn btn-secondary" style="flex: 1;">Back to History</a>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Embed original inputs and predictions to calculate differentials
+    const originalInput = {{ original_input | tojson }};
+    const originalPredictions = {{ original_predictions | tojson }};
+    
+    // API Route for updates
+    const simulateApiUrl = "{{ url_for('api_simulate') }}";
+</script>
+<script src="{{ url_for('static', filename='js/simulator.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}Prediction Results — Multi-Risk AI Predictor{% endblock %}
+
+{% block content %}
+<div class="results-header">
+    <h1 style="font-size: 2.2rem; font-weight: 800; margin-bottom: 8px;">Health Assessment Dashboard</h1>
+    <p style="color: var(--text-muted);">Personalized multi-disease risk analytics and medical-grade lifestyle recommendations.</p>
+</div>
+
+<!-- Disease Risk Scores Grid -->
+<div class="results-grid">
+    {% for disease_id, disease in diseases.items() %}
+    {% set pred = predictions[disease_id] %}
+    <div class="glass-card disease-card {{ pred.risk_level }}">
+        <div class="disease-icon">{{ disease.icon }}</div>
+        <h3 class="disease-name">{{ disease.display_name }}</h3>
+        <p class="disease-desc">{{ disease.description }}</p>
+        
+        <!-- Gauge Chart Container -->
+        <div class="chart-container">
+            <canvas id="gauge-{{ disease_id }}"></canvas>
+            <div class="gauge-prob-val" id="val-{{ disease_id }}">{{ (pred.probability * 100) | round(1) }}%</div>
+        </div>
+        
+        <div style="margin-top: 15px;">
+            <span class="risk-tag {{ pred.risk_level }}">{{ pred.risk_label }}</span>
+        </div>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 10px;">
+            Compared to population: <strong>{{ pred.percentile }}th</strong> percentile.
+        </p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Percentile Rank Explanation Section -->
+<div class="glass-card percentile-section">
+    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 8px;">📊 Percentile Risk Ranking</h3>
+    <p class="form-desc" style="margin-bottom: 20px;">
+        This shows where you fall relative to the general population. A higher percentile indicates you have higher risk than that percentage of analyzed patients.
+    </p>
+    
+    {% for disease_id, disease in diseases.items() %}
+    {% set pred = predictions[disease_id] %}
+    <div style="margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px;">
+            <span>{{ disease.display_name }}</span>
+            <span style="color: {{ pred.color }}">{{ pred.percentile }}% ({{ pred.risk_label }})</span>
+        </div>
+        <div class="percentile-bar-track">
+            <!-- Representing the filled percentile bar -->
+            <div class="percentile-bar-fill" style="width: 100%; opacity: 0.15; position: absolute; top:0; bottom:0;"></div>
+            <!-- The pointer indicating patient position -->
+            <div class="percentile-pointer" style="left: {{ pred.percentile }}%; border-color: {{ pred.color }};"></div>
+        </div>
+    </div>
+    {% endfor %}
+    
+    <div class="percentile-labels">
+        <span>0% (Lowest Risk)</span>
+        <span>50% (Average)</span>
+        <span>100% (Highest Risk)</span>
+    </div>
+</div>
+
+<!-- SHAP Explainability Section -->
+<div class="glass-card shap-section">
+    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 8px;">🧠 Feature Contribution Explanations (SHAP)</h3>
+    <p class="form-desc" style="margin-bottom: 30px;">
+        These represent the specific factors in your lifestyle and history that are pushing your risk level <strong>up (red)</strong> or <strong>down (green)</strong>.
+    </p>
+    
+    <div class="grid-3" style="gap: 32px; margin-top: 20px;">
+        {% for disease_id, disease in diseases.items() %}
+        <div>
+            <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border-glass); padding-bottom: 8px;">
+                <span>{{ disease.icon }}</span> {{ disease.display_name }} Factors
+            </h4>
+            
+            <div class="shap-list">
+                {% if shap_explanations[disease_id] %}
+                    {% for factor in shap_explanations[disease_id][:5] %}
+                    <div style="margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 500; margin-bottom: 4px;">
+                            <span>{{ factor.display_name }}</span>
+                            <span class="shap-val-col {% if factor.shap_value > 0 %}positive{% else %}negative{% endif %}">
+                                {% if factor.shap_value > 0 %}+{% endif %}{{ (factor.shap_value * 100) | round(2) }}%
+                            </span>
+                        </div>
+                        
+                        <!-- Mini bar representing SHAP value weight -->
+                        {% set abs_val = (factor.shap_value * 100) | abs %}
+                        {% set bar_width = [abs_val * 4, 100] | min %}
+                        <div class="bar-track">
+                            <div class="bar-fill {% if factor.shap_value > 0 %}positive{% else %}negative{% endif %}" 
+                                 style="width: {{ bar_width }}%; {% if factor.shap_value < 0 %}right: 0;{% endif %}">
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">SHAP values not available.</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Recommendations Section -->
+<div class="glass-card recommendations-section">
+    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 8px;">📋 Personalized Prevention Plan</h3>
+    <p class="form-desc" style="margin-bottom: 30px;">
+        Rule-based lifestyle and medical recommendations tailored directly to your high risk factors and lifestyle gaps.
+    </p>
+    
+    <div class="recs-grid">
+        {% for rec in recommendations %}
+        <div class="rec-card">
+            <div class="rec-icon">{{ rec.icon }}</div>
+            <div class="rec-content">
+                <h4>{{ rec.title }}</h4>
+                <p>{{ rec.text }}</p>
+                <div style="font-size: 0.75rem; color: var(--color-low); font-weight: 600; margin-top: 4px;">
+                    Category: {{ rec.category }}
+                </div>
+            </div>
+            <div>
+                <span class="rec-priority {{ rec.priority | lower }}">{{ rec.priority }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Action Panel -->
+<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; margin-top: 40px;">
+    <a href="{{ url_for('simulator') }}" class="btn btn-primary" id="btn-results-simulator">
+        Explore What-If Simulator 🧪
+    </a>
+    <a href="{{ url_for('pdf_report', record_id=record_id) }}" class="btn btn-secondary" id="btn-download-pdf">
+        Download PDF Report 📄
+    </a>
+    <a href="{{ url_for('predict') }}" class="btn btn-secondary" id="btn-results-new">
+        New Prediction 🔄
+    </a>
+    <a href="{{ url_for('history') }}" class="btn btn-secondary" id="btn-results-history">
+        View History Dashboard 📊
+    </a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Embed prediction values for JS Charting
+    const predData = {
+        diabetes: {{ predictions.diabetes.probability }},
+        hypertension: {{ predictions.hypertension.probability }},
+        heart_disease: {{ predictions.heart_disease.probability }}
+    };
+    
+    const predColors = {
+        diabetes: "{{ predictions.diabetes.color }}",
+        hypertension: "{{ predictions.hypertension.color }}",
+        heart_disease: "{{ predictions.heart_disease.color }}"
+    };
+</script>
+<script src="{{ url_for('static', filename='js/results.js') }}"></script>
+{% endblock %}

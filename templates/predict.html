@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block title %}Risk Assessment — Multi-Risk AI Predictor{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="max-width: 700px; margin: 0 auto;">
+    <!-- Step Progress Tracker -->
+    <div class="form-progress-container">
+        <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="progress-bar-fill"></div>
+        </div>
+        <div class="progress-steps-labels">
+            <span class="step-label active" data-step="1">Demographics</span>
+            <span class="step-label" data-step="2">Measurements</span>
+            <span class="step-label" data-step="3">Activity</span>
+            <span class="step-label" data-step="4">Diet</span>
+            <span class="step-label" data-step="5">Sleep</span>
+            <span class="step-label" data-step="6">Stress</span>
+            <span class="step-label" data-step="7">Habits</span>
+            <span class="step-label" data-step="8">Family Hx</span>
+        </div>
+    </div>
+
+    <!-- The Form -->
+    <form action="{{ url_for('results') }}" method="POST" id="predict-form" onsubmit="showLoading()">
+        
+        <!-- STEP 1: Demographics -->
+        <div class="form-step active" data-step="1">
+            <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 6px;">Demographics</h2>
+            <p class="form-desc" style="margin-bottom: 30px;">Let's start with basic biological factors.</p>
+            
+            <div class="form-group">
+                <label for="age">Age</label>
+                <p class="form-desc">Risk profiles change naturally with age.</p>
+                <input type="number" name="age" id="age" class="form-control" min="18" max="90" value="35" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Biological Gender</label>
+                <p class="form-desc">Certain diseases show gender-based prevalence differences.</p>
+                <div class="toggle-grid">
+                    <div>
+                        <input type="radio" name="gender" id="gender-male" value="0" class="toggle-input" checked>
+                        <label for="gender-male" class="toggle-btn">Male</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="gender" id="gender-female" value="1" class="toggle-input">
+                        <label for="gender-female" class="toggle-btn">Female</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 2: Body Measurements -->
+        <div class="form-step" data-step="2">
+            <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 6px;">Body Measurements</h2>
+            <p class="form-desc" style="margin-bottom: 30px;">Physical markers are strong indicators of chronic risk.</p>
+            
+            <div class="form-group">
+                <label for="bmi">Body Mass Index (BMI)</label>
+                <p class="form-desc">BMI represents weight status. Formula: Weight (kg) / Height (m)². Normal range is 18.5 – 24.9.</p>
+                <div class="slider-container">
+                    <input type="range" name="bmi" id="bmi" class="form-range" min="15.0" max="50.0" step="0.1" value="24.0">
+                    <span class="slider-val" id="bmi-val">24.0</span>
+                </div>
+            </div>
+            
+            <div style="margin-top: 24px; padding: 16px; border: 1px dashed var(--border-glass); border-radius: 8px; background: rgba(255,255,255,0.01);">
+                <span id="bmi-calc-toggle" style="cursor: pointer; color: var(--color-low); font-size: 0.9rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; user-select: none;">
+                    📐 Calculate my BMI (I don't know my BMI)
+                </span>
+                
+                <div id="bmi-calc-container" style="display: none; margin-top: 16px; animation: fadeIn 0.3s ease-out;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="bmi-height" style="font-size: 0.85rem; margin-bottom: 4px;">Height (cm)</label>
+                            <input type="number" id="bmi-height" class="form-control" placeholder="e.g. 170" min="100" max="250">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="bmi-weight" style="font-size: 0.85rem; margin-bottom: 4px;">Weight (kg)</label>
+                            <input type="number" id="bmi-weight" class="form-control" placeholder="e.g. 70" min="30" max="250">
+                        </div>
+                    </div>
+                    <div style="margin-top: 12px; display: flex; align-items: center; justify-content: space-between;">
+                        <button type="button" class="btn btn-secondary" id="btn-calculate-bmi" style="padding: 8px 16px; font-size: 0.8rem; font-weight: 600;">Apply Calculated BMI</button>
+                        <span id="bmi-calc-result" style="font-size: 0.85rem; font-weight: 600; color: var(--color-moderate);"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 3: Physical Activity -->
+        <div class="form-step" data-step="3">
+            <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 6px;">Physical Activity</h2>
+            <p class="form-desc" style="margin-bottom: 30px;">Exercise protects cardiovascular and metabolic pathways.</p>
+            
+            <div class="form-group">
+                <label for="activity_level">Daily Activity Level</label>
+                <p class="form-desc">Your overall daily physical activity (occupational & daily moving).</p>
+                <select name="activity_level" id="activity_level" class="form-select">
+                    <option value="1">Low (Sedentary, office worker)</option>
+                    <option value="2" selected>Moderate (Light walking, standing jobs)</option>
+                    <option value="3">High (Active labor, high mobility)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="exercise_duration">Dedicated Exercise (Minutes/Day)</label>
+                <p class="form-desc">Average daily exercise time in minutes.</p>
+                <div class="slider-container">
+                    <input type="range" name="exercise_duration" id="exercise_duration" class="form-range" min="0" max="120" step="1" value="30">
+                    <span class="slider-val" id="exercise_duration-val">30 min</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 4: Diet & Nutrition -->
+        <div class="form-step" data-step="4">
+            <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 6px;">Diet & Nutrition</h2>
+            <p class="form-desc" style="margin-bottom: 30px;">Nutrient balances govern vascular health and glucose metabolism.</p>
+            
+            <div class="form-group">
+                <label for="sugar_intake">Sugar Intake</label>
+                <p class="form-desc">Refined sugar levels (sweets, sodas, added sugars).</p>
+                <select name="sugar_intake" id="sugar_intake" class="form-select">
+                    <option value="0">Low (Rarely eat sweets, no sodas)</option>
+                    <option value="1" selected>Moderate (Occasional sweets or sweetened tea)</option>
+                    <option value="2">High (Daily sodas, processed sweets, snacks)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="salt_intake">Sodium (Salt) Intake</label>
+                <p class="form-desc">Adding extra salt or eating processed/packaged foods.</p>
+                <select name="salt_intake" id="salt_intake" class="form-select">
+                    <option value="0">Low (Cook with low salt, no packaged snacks)</option>
+                    <option value="1" selected>Moderate (Standard home-cooked food)</option>
+                    <option value="2">High (Frequent processed food, adding salt at table)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="fruit_veg_consumption">Fruit & Vegetable Servings (Daily)</label>
+                <p class="form-desc">Daily servings (1 serving = 1 cup raw or 1/2 cup cooked).</p>
+                <div class="slider-container">
+                    <input type="range" name="fruit_veg_consumption" id="fruit_veg_consumption" class="form-range" min="0" max="10" step="0.5" value="4.0">
+                    <span class="slider-val" id="fruit_veg_consumption-val">4.0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 5: Sleep -->
+        <div class="form-step" data-step="5">
+            <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 6px;">Sleep Quality & Duration</h2>
+            <p class="form-desc" style="margin-bottom: 30px;">Rest allows cellular restoration and regulates autonomic stress.</p>
+            
+            <div class="form-group">
+                <label for="sleep_duration">Sleep Duration (Hours)</label>
+                <p class="form-desc">Average nightly hours of sleep.</p>
+                <div class="slider-container">
+                    <input type="range" name="sleep_duration" id="sleep_duration" class="form-range" min="3.0" max="12.0" step="0.5" value="7.0">
+                    <span class="slider-val" id="sleep_duration-val">7.0 hrs</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="sleep_quality">Sleep Quality</label>
+                <p class="form-desc">How refreshed do you feel after waking?</p>
+                <select name="sleep_quality" id="sleep_quality" class="form-select">
+                    <option value="0">Poor (Wake up tired, frequently interrupted)</option>
+                    <option value="1" selected>Average (Sometimes tired, normal sleep)</option>
+                    <option value="2">Good (Sleep soundly, wake up refreshed)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- STEP 6: Mental Health -->
+        <div class="form-step" data-step="6">
+            <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 6px;">Mental Health</h2>
+            <p class="form-desc" style="margin-bottom: 30px;">Stress elevates cortisol, which increases blood sugar and heart rate.</p>
+            
+            <div class="form-group">
+                <label for="stress_level">General Stress Level</label>
+                <p class="form-desc">Your daily stress and pressure level.</p>
+                <select name="stress_level" id="stress_level" class="form-select">
+                    <option value="0">Low (Calm, manageable routine)</option>
+                    <option value="1" selected>Medium (Standard work/life pressures)</option>
+                    <option value="2">High (Constant worry, high pressure environment)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- STEP 7: Habits -->
+        <div class="form-step" data-step="7">
+            <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 6px;">Lifestyle Habits</h2>
+            <p class="form-desc" style="margin-bottom: 30px;">Substance habits have a massive impact on vascular stiffness.</p>
+            
+            <div class="form-group">
+                <label for="smoking_status">Smoking Status</label>
+                <p class="form-desc">Your tobacco usage history.</p>
+                <select name="smoking_status" id="smoking_status" class="form-select">
+                    <option value="0" selected>Never (Never smoked / very rarely)</option>
+                    <option value="1">Former (Quit smoking in the past)</option>
+                    <option value="2">Current (Smoke daily or weekly)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="alcohol_consumption">Alcohol Consumption</label>
+                <p class="form-desc">Frequency of drinking alcohol.</p>
+                <select name="alcohol_consumption" id="alcohol_consumption" class="form-select">
+                    <option value="0" selected>None (Do not drink)</option>
+                    <option value="1">Moderate (Occasional drink, within guidelines)</option>
+                    <option value="2">Heavy (Frequent drinking, high amount)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- STEP 8: Family History -->
+        <div class="form-step" data-step="8">
+            <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 6px;">Family History</h2>
+            <p class="form-desc" style="margin-bottom: 30px;">Genetic predisposition determines baseline vulnerability.</p>
+            
+            <div class="form-group">
+                <label>Family History of Diabetes</label>
+                <p class="form-desc">Parents or siblings diagnosed with Diabetes.</p>
+                <div class="toggle-grid">
+                    <div>
+                        <input type="radio" name="family_history_diabetes" id="fam-diab-no" value="0" class="toggle-input" checked>
+                        <label for="fam-diab-no" class="toggle-btn">No</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="family_history_diabetes" id="fam-diab-yes" value="1" class="toggle-input">
+                        <label for="fam-diab-yes" class="toggle-btn">Yes</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Family History of Hypertension</label>
+                <p class="form-desc">Parents or siblings diagnosed with High Blood Pressure.</p>
+                <div class="toggle-grid">
+                    <div>
+                        <input type="radio" name="family_history_hypertension" id="fam-hyp-no" value="0" class="toggle-input" checked>
+                        <label for="fam-hyp-no" class="toggle-btn">No</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="family_history_hypertension" id="fam-hyp-yes" value="1" class="toggle-input">
+                        <label for="fam-hyp-yes" class="toggle-btn">Yes</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Family History of Heart Disease</label>
+                <p class="form-desc">Parents or siblings diagnosed with Heart Attack/Stroke.</p>
+                <div class="toggle-grid">
+                    <div>
+                        <input type="radio" name="family_history_heart_disease" id="fam-heart-no" value="0" class="toggle-input" checked>
+                        <label for="fam-heart-no" class="toggle-btn">No</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="family_history_heart_disease" id="fam-heart-yes" value="1" class="toggle-input">
+                        <label for="fam-heart-yes" class="toggle-btn">Yes</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="form-navigation">
+            <button type="button" class="btn btn-secondary" id="btn-prev" style="display: none;">Previous</button>
+            <button type="button" class="btn btn-primary" id="btn-next" style="margin-left: auto;">Next</button>
+            <button type="submit" class="btn btn-primary" id="btn-submit" style="display: none; margin-left: auto;">Predict Risk 🔮</button>
+        </div>
+
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/predict.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Home — Multi-Risk AI Predictor{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    {% raw %}<h1 class="hero-title">VitalsAlign</h1>{% endraw %}
+    <p class="hero-subtitle">An advanced machine learning framework to analyze personal habits, clinical signs, and family history to predict chronic disease risk, explain contributing factors, and simulate risk reduction paths.</p>
+    <img src="{{ url_for('static', filename='images/health_vector.png') }}" alt="Health Vector" style="max-width: 100%; height: auto; margin-bottom: 20px;">
+    <a href="{{ url_for('predict') }}" class="btn btn-primary" id="btn-start-prediction">
+        Start Risk Assessment 🩺
+    </a>
+</section>
+
+<!-- Disease Profile Grid -->
+<section style="margin-top: 40px;">
+    <h2 style="text-align: center; font-size: 1.8rem; font-weight: 700; margin-bottom: 30px;">Diseases Targeted by System</h2>
+    <div class="grid-3">
+        <!-- Diabetes Card -->
+        <div class="glass-card disease-card low" style="border-top-color: #ff6b6b;">
+            <div class="disease-icon">🩸</div>
+            <h3 class="disease-name">Type 2 Diabetes</h3>
+            <p class="disease-desc">Chronic metabolic disorder affecting glycemic control. Influenced heavily by BMI, sugar intake, age, and activity levels.</p>
+        </div>
+        
+        <!-- Hypertension Card -->
+        <div class="glass-card disease-card moderate" style="border-top-color: #ffd93d;">
+            <div class="disease-icon">💓</div>
+            <h3 class="disease-name">Hypertension</h3>
+            <p class="disease-desc">High blood pressure, causing stress on heart vessels. Driven by sodium (salt) intake, stress, obesity, and genetics.</p>
+        </div>
+        
+        <!-- Heart Disease Card -->
+        <div class="glass-card disease-card high" style="border-top-color: #00d4aa;">
+            <div class="disease-icon">❤️</div>
+            <h3 class="disease-name">Heart Disease</h3>
+            <p class="disease-desc">Cardiovascular conditions affecting blood flow and oxygen supply. Strongly associated with smoking, age, BMI, and cholesterol.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Key Core Features -->
+<section style="margin-top: 80px;">
+    <h2 style="text-align: center; font-size: 1.8rem; font-weight: 700; margin-bottom: 12px;">System Features</h2>
+    <p style="text-align: center; color: var(--text-muted); max-width: 600px; margin: 0 auto 40px auto; font-size: 0.95rem;">Designed to give you deep insights into your health status using explainable AI models.</p>
+    
+    <div class="grid-2">
+        <!-- Feature 1: Multi-Disease Predictions -->
+        <div class="glass-card feature-card">
+            <div class="feature-icon-wrapper">🔮</div>
+            <h3 class="feature-title">Simultaneous Risk Scoring</h3>
+            <p class="feature-description">Trained on ensemble classifiers (Random Forest, LightGBM, XGBoost) to output three separate probability assessments, which are contextually mapped to population percentiles for clear interpretation.</p>
+        </div>
+        
+        <!-- Feature 2: SHAP Explainability -->
+        <div class="glass-card feature-card">
+            <div class="feature-icon-wrapper">🧠</div>
+            <h3 class="feature-title">Explainable Predictions (SHAP)</h3>
+            <p class="feature-description">No black-box models. Every risk calculation is run through SHAP (SHapley Additive Explanations) to show which personal factors are increasing or lowering your risk scores.</p>
+        </div>
+        
+        <!-- Feature 3: What-If Simulator -->
+        <div class="glass-card feature-card">
+            <div class="feature-icon-wrapper">🧪</div>
+            <h3 class="feature-title">What-If Risk Simulator</h3>
+            <p class="feature-description">Interact with a real-time risk dashboard. Adjust sliders for diet, exercise, smoking, stress, and sleep to witness how risk levels shift instantly under hypothetical scenarios.</p>
+        </div>
+        
+        <!-- Feature 4: Recommendation Engine -->
+        <div class="glass-card feature-card">
+            <div class="feature-icon-wrapper">📋</div>
+            <h3 class="feature-title">Personalized Lifestyle Actions</h3>
+            <p class="feature-description">Get prioritized clinical and lifestyle advice. From DASH diet changes to aerobic exercise protocols, suggestions target the precise factors driving your risk profile.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Project Statistics -->
+<section style="margin-top: 80px; margin-bottom: 40px;">
+    <div class="glass-card" style="padding: 40px 20px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; text-align: center;">
+            <div>
+                <h3 style="font-size: 2.5rem; font-weight: 800; color: var(--color-low);" class="counter" data-target="16">0</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; font-weight: 500;">Risk Features Analyzed</p>
+            </div>
+            <div>
+                <h3 style="font-size: 2.5rem; font-weight: 800; color: #a855f7;" class="counter" data-target="3">0</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; font-weight: 500;">Target Chronic Diseases</p>
+            </div>
+            <div>
+                <h3 style="font-size: 2.5rem; font-weight: 800; color: var(--color-high);" class="counter" data-target="3">0</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; font-weight: 500;">Advanced ML Models</p>
+            </div>
+            <div>
+                <h3 style="font-size: 2.5rem; font-weight: 800; color: var(--accent-secondary);" class="counter" data-target="5000">0</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; font-weight: 500;">Simulated Patient Dataset</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // Simple counter animation
+        const counters = document.querySelectorAll('.counter');
+        counters.forEach(counter => {
+            const updateCount = () => {
+                const target = +counter.getAttribute('data-target');
+                const count = +counter.innerText;
+                const speed = 100; // lower is faster
+                
+                const inc = Math.max(1, Math.floor(target / speed));
+                
+                if (count < target) {
+                    counter.innerText = count + inc;
+                    setTimeout(updateCount, 15);
+                } else {
+                    counter.innerText = target;
+                }
+            };
+            updateCount();
+        });
+    });
+</script>
+{% endblock %}
