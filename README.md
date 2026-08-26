@@ -4,7 +4,7 @@ VitalsAlign is a machine learning-powered health assessment platform designed to
 
 ---
 
-## 🚀 Key Features
+##  Key Features
 
 * **Multi-Step Risk Assessment**: An interactive 8-step questionnaire capturing demographics, biometrics (such as BMI), exercise, diet, sleep, habits, stress levels, and genetic predisposition.
 * **Explainable AI (SHAP)**: Transcends "black box" models by providing clear, local feature contribution graphs showing exactly which habits drive your risk up (red) or down (green).
@@ -15,7 +15,7 @@ VitalsAlign is a machine learning-powered health assessment platform designed to
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 * **Backend**: Python, Flask (Web framework), SQLite (Data storage)
 * **Machine Learning**: Scikit-Learn, XGBoost, LightGBM, SHAP (Explainable AI)
@@ -25,7 +25,7 @@ VitalsAlign is a machine learning-powered health assessment platform designed to
 
 ---
 
-## 💻 Getting Started / How to Run
+##  Getting Started / How to Run
 
 Follow these instructions to set up and run VitalsAlign locally on your machine.
 
@@ -103,6 +103,3 @@ Here are visual walkthroughs of the running system:
 ```
 
 ---
-
-## 📄 License
-This project is open-source and available under the MIT License.
